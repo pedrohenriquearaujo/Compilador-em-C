@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <string.h>
 #define tam 256
+#define true 1
 
 typedef struct token{
 
@@ -11,24 +12,27 @@ typedef struct token{
 
 }token;
 
-void Abrir_Arquivo(char nome[] , FILE * arq);
-token * scan(token * t, FILE arq, int linha, int coluna);
 
+void Abrir_Arquivo(char nome[] , FILE ** arq);
+token * scan(FILE * arq, int * linha, int * coluna);
+int Palavra_Reversada( char buffer[], int pos_buffer);
 int main(){
 
 	FILE * arquivo=NULL;
-	
+	token * t;
 	int linha=0, coluna=0;
-	char c;
+	
 
 	char nome_arq[tam]="arquivo.txt";
 
-	Abrir_Arquivo(nome_arq,arquivo);
+	Abrir_Arquivo(nome_arq,&arquivo);
 
 	while (!feof(arquivo)){
 
-		printf("Letras: %c", c);
+		t=scan(arquivo,&linha,&coluna);
 
+		printf("Letras: %c", t->code);		
+		printf("Letras: %c", t->identificador);
 
 	}
 	
@@ -38,46 +42,65 @@ int main(){
 	return 0;
 }
 
-void Abrir_Arquivo(char nome[] , FILE * arq){	
+void Abrir_Arquivo(char nome[] , FILE ** arq){	
 
-	arq=fopen(nome,"r");
+	*arq=fopen(nome,"r");
 
-	if(arq!=NULL){
-			
+	if(*arq!=NULL){
+		printf("Abertura do Arquivo!\n");	
 	}else{
 		printf("Erro de Abertura do Arquivo!\n");
 	}
 }
-token * scan(token * t, FILE arq, int linha, int coluna){
-
-	char buffer[tam],l;
-	int i=0;
-	fread(&l,sizeof(l),1,&arq);
+token * scan(FILE * arq, int * linha, int * coluna){
+	enum tokens {t_main, t_if, t_else, t_while, t_do, t_for, t_int, t_float, t_char};
+	token * t=NULL;
+	char buffer[tam];
+	static char l_h = ' ';
+	int pos_buffer=0;
+	
 
 	while (true){
 
-	 if(!isspace(l)){
-		buffer[i]=l;
-		i++;
-		checar_token(buffer,t){
+		//ESPAÇOS
+		if(l_h == ' ')		
+		coluna++;		
+		else if(l_h == '\t')		
+		coluna+=4;		
+		else if(l_h == '\n')			
+		linha++;		
 		
+		//LETRAS
+		if(l_h == '_' || isalpha(l_h) ){
+			
+			buffer[pos_buffer]=l_h;
+			pos_buffer++;
+			fread(&l_h,sizeof(l_h),1,arq);
+
+			while (l_h == '_' || isalnum(l_h) ){
+				buffer[pos_buffer]=l_h;
+				pos_buffer++;
+				fread(&l_h,sizeof(l_h),1,arq);
+			}
+			buffer[pos_buffer]='\0';
+			strcpy(t->identificador,buffer);
+			t->code=Palavra_Reversada(buffer,pos_buffer);			
 		}
-	}
-	 fread(&l,sizeof(l),1,&arq);
-		
-	}
 
-
+		fread(&l_h,sizeof(l_h),1,arq);
+	}
 }
 
-void checar_token(char buffer[], token * t){
 
-	enum tokens {tipo_inteiro, flutante};
-	if(strcmp(buffer,"int")==0){
-		strcpy(t->identificador,buffer);	
-		t->code=tipo_inteiro;
-	}else{
 
+int Palavra_Reversada( char buffer[], int pos_buffer){
+
+	int i;	
+	char palavra_reservada[10][10] = {"main", "if", "else", "while", "do", "for", "int", "float", "char"};	
+
+	for (i = 0; i < 10; i++){		
+		if(strcmp(buffer,palavra_reservada[i])==0)
+			return i;
 	}
-
+	return 10;
 }
