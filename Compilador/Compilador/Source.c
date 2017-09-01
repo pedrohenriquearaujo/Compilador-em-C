@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 #define tam 256
 #define true 1
 
@@ -10,16 +11,16 @@ typedef struct token{
 	int code;
 	char identificador[tam];
 
-}token;
+}Ttoken;
 
 
 void Abrir_Arquivo(char nome[] , FILE ** arq);
-token * scan(FILE * arq, int * linha, int * coluna);
+Ttoken * scan(FILE * arq, int * linha, int * coluna);
 int Palavra_Reversada( char buffer[], int pos_buffer);
 int main(){
 
 	FILE * arquivo=NULL;
-	token * t;
+	Ttoken * t;
 	int linha=0, coluna=0;
 	
 
@@ -30,15 +31,14 @@ int main(){
 	while (!feof(arquivo)){
 
 		t=scan(arquivo,&linha,&coluna);
-
-		printf("Letras: %c", t->code);		
-		printf("Letras: %c", t->identificador);
-
+		if(t==NULL)		
+			break;
+		
+		printf("Letras: %i", t->code);		
+		printf("Letras: %s", t->identificador);
+		printf("\n");
 	}
 	
-
-
-
 	return 0;
 }
 
@@ -52,17 +52,18 @@ void Abrir_Arquivo(char nome[] , FILE ** arq){
 		printf("Erro de Abertura do Arquivo!\n");
 	}
 }
-token * scan(FILE * arq, int * linha, int * coluna){
-	enum tokens {t_main, t_if, t_else, t_while, t_do, t_for, t_int, t_float, t_char};
-	token * t=NULL;
-	char buffer[tam];
+Ttoken * scan(FILE * arq, int * linha, int * coluna){
+	enum palavras {t_main, t_if, t_else, t_while, t_do, t_for, t_int, t_float, t_char};
+	Ttoken * t;
+	char buffer[tam]={'\0'};
 	static char l_h = ' ';
 	int pos_buffer=0;
-	
 
-	while (true){
+	t=(Ttoken*)malloc(sizeof(Ttoken));	
 
-		//ESPAÇOS
+	while (!feof(arq)){
+
+		//ESPAÃ‡OS
 		if(l_h == ' ')		
 		coluna++;		
 		else if(l_h == '\t')		
@@ -74,8 +75,9 @@ token * scan(FILE * arq, int * linha, int * coluna){
 		if(l_h == '_' || isalpha(l_h) ){
 			
 			buffer[pos_buffer]=l_h;
-			pos_buffer++;
+			pos_buffer+;
 			fread(&l_h,sizeof(l_h),1,arq);
+			
 
 			while (l_h == '_' || isalnum(l_h) ){
 				buffer[pos_buffer]=l_h;
@@ -83,12 +85,19 @@ token * scan(FILE * arq, int * linha, int * coluna){
 				fread(&l_h,sizeof(l_h),1,arq);
 			}
 			buffer[pos_buffer]='\0';
+			
+			
+			
 			strcpy(t->identificador,buffer);
-			t->code=Palavra_Reversada(buffer,pos_buffer);			
+			t->code=Palavra_Reversada(buffer,pos_buffer);	
+			return t;
 		}
 
 		fread(&l_h,sizeof(l_h),1,arq);
 	}
+
+	return NULL;
+	
 }
 
 
