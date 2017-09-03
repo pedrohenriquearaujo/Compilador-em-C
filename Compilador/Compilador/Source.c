@@ -57,7 +57,7 @@ void msg(int code,Ttoken * t,int linha, int coluna);
 int main(){
 
 	FILE * arquivo;
-	Ttoken * t, * ultimo;
+	Ttoken * t=NULL, * ultimo=NULL;
 	int linha=0, coluna=0;	
 
 	Abrir_Arquivo("arquivo.txt",&arquivo);
@@ -69,6 +69,8 @@ int main(){
 		if(t==NULL)
 			break;
 
+		
+
 		if( t->identificador[0] != '\0'){
 			ultimo=t;	
 			printf("Code: %i  ", t->code);		
@@ -78,6 +80,9 @@ int main(){
 			printf("\n");
 			
 		}else{
+
+			
+
 			msg(t->code,ultimo,linha,coluna);
 		}
 	}
@@ -356,7 +361,7 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 			fread(&l_h,sizeof(l_h),1,arq);
 			(*coluna)++;
 
-			if(feof(arq) || isalnum(l_h)){
+			if(feof(arq) || isalnum(l_h) || isspace(l_h)){
 				t->code=DIV;
 				t->identificador[0]=buffer[0];
 				t->identificador[1]='\0';

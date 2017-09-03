@@ -1,16 +1,3 @@
-int main (){
-	
-	int a=0,b=1;
-	a=b/a;
-	
-	//puta que pariu
-  
-	if(a>b){
-		a=b;
-	 }
-
-	 //
-
-
-	
-}
+18 / /*dhasiudhaiudhaisu*********//* matheus *// /*dhaiuhduash*
+18.8 asd as dasd
+ dadas as das */ 18
