@@ -1,1 +1,16 @@
-int main _123 jose maria
+int main (){
+	
+	int a=0,b=1;
+	a=b/a;
+	
+	//puta que pariu
+  
+	if(a>b){
+		a=b;
+	 }
+
+	 //
+
+
+	
+}
