@@ -38,6 +38,8 @@
 //COMENTARIO
 #define COMENTARIO_LINHA 35
 #define COMENTARIO_MULT 36
+//CARACTER
+#define CARACTER_INVALIDO 37
 
 typedef struct token{
 
@@ -59,6 +61,8 @@ int main(){
 	FILE * arquivo;
 	Ttoken * t=NULL, * ultimo=NULL;
 	int linha=0, coluna=0;	
+	ultimo=(Ttoken*)malloc(sizeof(Ttoken));
+	strcpy(ultimo->identificador,"SEM ANTERIOR");
 
 	Abrir_Arquivo("arquivo.txt",&arquivo);
 
@@ -66,9 +70,9 @@ int main(){
 
 		t=scan(arquivo,&linha,&coluna);	
 
-		if(t==NULL)
+		if(t==NULL)		
 			break;
-
+		
 		
 
 		if( t->identificador[0] != '\0'){
@@ -80,9 +84,6 @@ int main(){
 			printf("\n");
 			
 		}else{
-
-			
-
 			msg(t->code,ultimo,linha,coluna);
 		}
 	}
@@ -91,6 +92,7 @@ int main(){
 
 void msg (int code,Ttoken * t, int linha, int coluna){
 
+	
 	if( code == 30 )
 		printf("ERRO na linha %i, coluna %i, ultimo token lido {%s}: ERRO NA FORMACAO DO FLOAT\n", linha, coluna, t->identificador);
 	if( code == 31)
@@ -105,6 +107,8 @@ void msg (int code,Ttoken * t, int linha, int coluna){
 		printf("COMETARIO LINHA");
 	if( code == 36)
 		printf("COMETARIO MULT");
+	if( code == 37)
+		printf("CARACTER INVALIDO\n");
 	printf("\n");
 }
 
@@ -137,6 +141,8 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 
 			fread(&l_h,sizeof(l_h),1,arq);
 			(*coluna)++;
+
+
 
 
 			if( verificar_caracter(l_h,linha,coluna,arq) == 1){			
@@ -224,6 +230,9 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 
 			fread(&l_h,sizeof(l_h),1,arq);
 			(*coluna)++;
+
+
+
 
 			if(isalnum(l_h)){
 				buffer[pos_buffer]=l_h;
@@ -431,10 +440,24 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 		}
 		fread(&l_h,sizeof(l_h),1,arq);
 		(*coluna)++;		
+		if(!alfabeto(l_h) && !feof(arq) ){
+				t->code=CARACTER_INVALIDO;
+				t->identificador[0]='\0';
+				return t;
+			}
 		//ESPECIAL			
 }
 	return NULL;
 }
+
+void leitura(FILE * arq, char * l_h, int * linha, int * coluna){
+		
+	fread(&l_h,sizeof(l_h),1,arq);
+	(*coluna)++;
+
+
+}
+
 
 int alfabeto(char l_h){
 
@@ -445,7 +468,7 @@ int alfabeto(char l_h){
 		return 1;
 
 	for (i = 0; i < 15; i++){
-		if(l_h)
+		if(l_h == simbolos[i])
 			return 1;
 	}
 	return 0;
