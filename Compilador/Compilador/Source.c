@@ -32,12 +32,8 @@
 //ERROS
 #define ERRO_FLOAT 30
 #define ERRO_CHAR 31
-#define ERRO_CHAR_2 34
 #define ERRO_EXCLAMACAO 32
 #define ERRO_COMENTARIO 33
-//COMENTARIO
-#define COMENTARIO_LINHA 35
-#define COMENTARIO_MULT 36
 //CARACTER
 #define CARACTER_INVALIDO 37
 
@@ -51,65 +47,55 @@ typedef struct token{
 void Abrir_Arquivo(char nome[] , FILE ** arq);
 Ttoken * scan(FILE * arq, int * linha, int * coluna);
 int Palavra_Reversada( char buffer[], int pos_buffer);
-int verificar_caracter(char l_h, int * linha, int * coluna, FILE * arq);
 Ttoken * simbolos(Ttoken * t,char l_h);
-int alfabeto(char l_h);
-void msg(int code,Ttoken * t,int linha, int coluna);
+void msg (Ttoken * t, int linha, int coluna);
+void leitura(FILE * arq,char * l_h, int * linha, int * coluna, char buffer[], int * pos_buffer);
+int verificar_id( char l_h , FILE * arq);
+int verificar_numero( char l_h , FILE * arq );
 
-int main(){
+int main( int argc, char* argv[] ){
 
 	FILE * arquivo;
-	Ttoken * t=NULL, * ultimo=NULL;
-	int linha=0, coluna=0;	
-	ultimo=(Ttoken*)malloc(sizeof(Ttoken));
-	strcpy(ultimo->identificador,"SEM ANTERIOR");
+	Ttoken * t=NULL;
+	int linha=1, coluna=-1;	
+	
 
 	Abrir_Arquivo("arquivo.txt",&arquivo);
 
-	while (true){
+	while (!feof(arquivo)){
 
 		t=scan(arquivo,&linha,&coluna);	
 
-		if(t==NULL)		
-			break;
-		
-		
+		msg(t,linha,coluna);
 
-		if( t->identificador[0] != '\0'){
-			ultimo=t;	
+	}
+	return 0;
+}
+
+void msg (Ttoken * t, int linha, int coluna){
+
+	if( t != NULL ){
+
+	if( t->code == 30 )
+		printf("ERRO na linha %i, coluna %i, ultimo token lido |%s|: FLOAT\n", linha, coluna, t->identificador);
+	else if( t->code == 31)
+		printf("ERRO na linha %i, coluna %i, ultimo token lido |%s|: CHAR\n", linha, coluna, t->identificador);
+	else if( t->code == 32)
+		printf("ERRO na linha %i, coluna %i, ultimo token lido |%s|: DEFERENTE '!='\n", linha, coluna, t->identificador);
+	else if( t->code == 33)
+		printf("ERRO na linha %i, coluna %i, ultimo token lido |%s|: COMENTARIO\n", linha, coluna, t->identificador);
+	else if( t->code == 37)
+		printf("ERRO na linha %i, coluna %i, ultimo token lido |%c|: CARACTER INVALIDO \n", linha, coluna, t->identificador[0]);
+	else{
 			printf("Code: %i  ", t->code);		
 			printf("Lex: {%s}	", t->identificador);		
 			printf("Linha: %i	", linha);
 			printf("Coluna: %i	", coluna);
 			printf("\n");
-			
-		}else{
-			msg(t->code,ultimo,linha,coluna);
-		}
 	}
-	return 0;
-}
 
-void msg (int code,Ttoken * t, int linha, int coluna){
-
-	
-	if( code == 30 )
-		printf("ERRO na linha %i, coluna %i, ultimo token lido {%s}: ERRO NA FORMACAO DO FLOAT\n", linha, coluna, t->identificador);
-	if( code == 31)
-		printf("ERRO na linha %i, coluna %i, ultimo token lido {%s}: ERRO NA FORMACAO DO CHAR\n", linha, coluna, t->identificador);
-	if( code == 32)
-		printf("ERRO na linha %i, coluna %i, ultimo token lido {%s}: ERRO NA FORMACAO DO '!='\n", linha, coluna, t->identificador);
-	if( code == 33)
-		printf("ERRO na linha %i, coluna %i, ultimo token lido {%s}: ERRO DE COMENTARIO\n", linha, coluna, t->identificador);
-	if( code == 34)
-		printf("ERRO na linha %i, coluna %i, ultimo token lido {%s}: ERRO NA FORMACAO DO CHAR_2\n", linha, coluna, t->identificador);
-	if( code == 35)
-		printf("COMETARIO LINHA");
-	if( code == 36)
-		printf("COMETARIO MULT");
-	if( code == 37)
-		printf("CARACTER INVALIDO\n");
 	printf("\n");
+	}
 }
 
 void Abrir_Arquivo(char nome[] , FILE ** arq){	
@@ -117,51 +103,32 @@ void Abrir_Arquivo(char nome[] , FILE ** arq){
 	*arq=fopen(nome,"r");
 
 	if(*arq!=NULL){
-		printf("Abertura do Arquivo!\n");	
+		printf("Arquivo Aberto Com Sucesso!");	
 	}else{
-		printf("Erro de Abertura do Arquivo!\n");
+		printf("Erro de Abertura do Arquivo!");
 	}
+
+	printf("\n\n");
+
 }
 Ttoken * scan(FILE * arq, int * linha, int * coluna){
 
-	Ttoken * t=NULL, *j=NULL;
+
+	Ttoken * t=NULL;
 	char buffer[tam]={'\0'};
 	static char l_h = ' ';
 	int pos_buffer=0;	
 
 	t=(Ttoken*)malloc(sizeof(Ttoken));
 
-	while (!feof(arq)){		
+	while ( !feof(arq) ){		
 
 		//ID
-		if(l_h == '_' || isalpha(l_h) ){
-
-			buffer[pos_buffer]=l_h;
-			pos_buffer++;
-
-			fread(&l_h,sizeof(l_h),1,arq);
-			(*coluna)++;
-
-
-
-
-			if( verificar_caracter(l_h,linha,coluna,arq) == 1){			
-
-				t->code=Palavra_Reversada(buffer,pos_buffer);
-				strcpy(t->identificador,buffer);
-				return t;
-			}
-			while ( l_h == '_' || isalnum(l_h) ){
-
-				buffer[pos_buffer]=l_h;
-				pos_buffer++;
-
-				fread(&l_h,sizeof(l_h),1,arq);
-				(*coluna)++;
-
-				if( verificar_caracter(l_h,linha,coluna,arq) == 1)
-					break;				
-			}	
+		if( l_h == '_' || isalpha(l_h) ){
+			
+			while ( verificar_id (l_h,arq) )				
+				leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);			
+		
 			strcpy(t->identificador,buffer);
 			t->code=Palavra_Reversada(buffer,pos_buffer);	
 			return t;		
@@ -169,150 +136,121 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 		//ID
 
 		//NUMERO
-		if( isdigit(l_h) || l_h == '.' ){
+		else if( isdigit(l_h) || l_h == '.' ){
 
-			while ( isdigit(l_h)){
+			while ( verificar_numero(l_h,arq) )
+				leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
+			
 
-				buffer[pos_buffer]=l_h;
-				pos_buffer++;
+			if( l_h == '.' ){
 
-				fread(&l_h,sizeof(l_h),1,arq);
-				(*coluna)++;
+				leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);			
 
-				if(feof(arq)){
-					t->code=INT;
+				if( feof(arq) ){
+
+					t->code=ERRO_FLOAT;
 					strcpy(t->identificador,buffer);	
 					return t;
-				}
-			}
-			
-			if(l_h == '.'){
-				buffer[pos_buffer]=l_h;
-				pos_buffer++;
 
-				fread(&l_h,sizeof(l_h),1,arq);
-				(*coluna)++;
+				}else if( isdigit(l_h) ){
 
-				if(feof(arq)){
-					t->code=ERRO_FLOAT;
-					t->identificador[0]='\0';	
-					return t;
-				}
-				if(isdigit(l_h)){
-					while ( isdigit(l_h) ){
+					while ( verificar_numero(l_h,arq) )
+						leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
 
-					buffer[pos_buffer]=l_h;
-					pos_buffer++;
-
-					fread(&l_h,sizeof(l_h),1,arq);
-					(*coluna)++;
-
-						if(feof(arq)){
 							t->code=FLOAT;
 							strcpy(t->identificador,buffer);	
 							return t;
-						}
-					}
+
 				}else{
+
 					t->code=ERRO_FLOAT;
-					t->identificador[0]='\0';	
+					strcpy(t->identificador,buffer);					
 					return t;
-				}			
+				}
 			}
-							t->code=INT;
-							strcpy(t->identificador,buffer);							
-							return t;
-		}//NUMERO
-		
-		if( l_h == 39){//CHAR
-			buffer[pos_buffer]=l_h;
-			pos_buffer++;
+			t->code=INT;
+			strcpy(t->identificador,buffer);							
+			return t;
+		}
+		//NUMERO
 
-			fread(&l_h,sizeof(l_h),1,arq);
-			(*coluna)++;
+		//CHAR
+		else if( l_h == 39 ){
 
+			leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
+			
+			if( isalnum(l_h) ){
 
+				leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
 
+				if( l_h != 39 ){
 
-			if(isalnum(l_h)){
-				buffer[pos_buffer]=l_h;
-				pos_buffer++;
+					leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);				
 
-				fread(&l_h,sizeof(l_h),1,arq);
-				(*coluna)++;
-
-				if( l_h!=39 ){
-							t->code=ERRO_CHAR;
-							t->identificador[0]='\0';
-							return t;
 				}else{
 					buffer[pos_buffer]=l_h;
 					pos_buffer++;
 
 					strcpy(t->identificador,buffer);
 					t->code=CHAR;	
-
-					fread(&l_h,sizeof(l_h),1,arq);
-					(*coluna)++;
+					
+					fread(&l_h,sizeof(l_h),1,arq); //REMOVER ESTA LINHA
+					(*coluna)++;					//REMOVER ESTA LINHA
 
 					return t;
 				}
-			
+
 			}else{
-					t->code=ERRO_CHAR_2;
-					t->identificador[0]='\0';
-					return t;
+				t->code=ERRO_CHAR;
+				strcpy(t->identificador,buffer);
+				return t;
 			}
-		}//CHAR		
-		
-		if( l_h == '>' || l_h == '<'){ //RELACIONAL
-			
-			buffer[pos_buffer]=l_h;
-			pos_buffer++;
-			
-			if( l_h == '>' ){
+		} 
+		//CHAR		
+
+		//RELACIONAL
+		else if( l_h == '>' || l_h == '<'){ 
+
+			leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
+
+			if( buffer[0] == '>' ){
+
 				t->code=MAIOR;
 				t->identificador[0]=l_h;
+
 			}else{
+
 				t->code=MENOR;
 				t->identificador[0]=l_h;
-			}
 
-			fread(&l_h,sizeof(l_h),1,arq);
-			(*coluna)++;
+			}
 
 			if( l_h != '='){
 
-			t->identificador[1]='\0';
-			return t;
+				t->identificador[1]='\0';
+				return t;
 
 			}else{
-				if(t->code==MAIOR)
+				if( t->code == MAIOR )
 					t->code=MAIOR_IGUAL;
 				else
 					t->code=MENOR_IGUAL;
-							
+
 				t->identificador[1]=l_h;
 				t->identificador[2]='\0';
-				
+
 				fread(&l_h,sizeof(l_h),1,arq);
 				(*coluna)++;
-
-			if(feof(arq))
-				return t;	
+									
 				return t;
 			}
-		
+
 		}else if( l_h == '='){
+
+			leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
 			
-			buffer[pos_buffer]=l_h;
-			pos_buffer++;			
-		
-
-			fread(&l_h,sizeof(l_h),1,arq);
-			(*coluna)++;
-
-			if(feof(arq)){
+			if( feof(arq) ){
+				
 				t->code=ATRIBUICAO;
 				t->identificador[0]=buffer[0];
 				t->identificador[1]='\0';
@@ -333,150 +271,170 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 				t->identificador[2]='\0';
 
 				fread(&l_h,sizeof(l_h),1,arq);
-			(*coluna)++;
+				(*coluna)++;
 
 				return t;
 			}
 		}else if( l_h == '!'){
-		
-			buffer[pos_buffer]=l_h;
 
-			t->code=DIF;		
+			leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
 
-			fread(&l_h,sizeof(l_h),1,arq);
-			(*coluna)++;
+			t->code=DIF;
 
-			if(l_h != '='){
+			if( l_h != '=' ){
+
+				buffer[pos_buffer]=l_h;
+				
 				t->code=ERRO_EXCLAMACAO;
-				t->identificador[0]='\0';
+
+				strcpy(t->identificador,buffer);
+				
 				return t;
-			}else{				
-			t->identificador[0]=buffer[0];
-			t->identificador[1]=l_h;
-			t->identificador[2]='\0';
+			}else{	
 
-			fread(&l_h,sizeof(l_h),1,arq);
-			(*coluna)++;
-
-			return t;
-			}
-		}//RELACIONAL
-					
-		if( l_h == '/'){//COMENTARIO
-
-			buffer[pos_buffer]=l_h;
-			pos_buffer++;
-
-			fread(&l_h,sizeof(l_h),1,arq);
-			(*coluna)++;
-
-			if(feof(arq) || isalnum(l_h) || isspace(l_h)){
-				t->code=DIV;
 				t->identificador[0]=buffer[0];
-				t->identificador[1]='\0';
-				return t;			
-			}else if(l_h == '/'){
-				
-				while (l_h !='\n'){
+				t->identificador[1]=l_h;
+				t->identificador[2]='\0';
 
-					fread(&l_h,sizeof(l_h),1,arq);
-					(*coluna)++;
-
-					if(feof(arq)){					
-						t->code=COMENTARIO_LINHA;
-						t->identificador[0]='\0';
-						return t; 		
-					}}
-				(*linha)++;
-				t->code=COMENTARIO_LINHA;
-				t->identificador[0]='\0';
-				return t;
-				
-			}else if( l_h == '*'){
-				
 				fread(&l_h,sizeof(l_h),1,arq);
 				(*coluna)++;
-				
-				if(feof(arq)){
-					t->code=ERRO_COMENTARIO;
-					t->identificador[0]='\0';
-					return t;
-				}
-				while (!feof(arq)){
-
-					if( l_h == '*'){
-					fread(&l_h,sizeof(l_h),1,arq);
-					(*coluna)++;
-
-						if(feof(arq)){
-						t->code=ERRO_COMENTARIO;
-						t->identificador[0]='\0';
-						return t;
-						}
-							if(l_h == '/'){
-							t->code=COMENTARIO_MULT;
-							t->identificador[0]='\0';
-
-							fread(&l_h,sizeof(l_h),1,arq);
-							(*coluna)++;
-
-							return t;//COMENTARIO DE UMA LINHA
-							}				
-					}
-					fread(&l_h,sizeof(l_h),1,arq);
-					(*coluna)++;
-				}	
-						t->code=ERRO_COMENTARIO;
-						t->identificador[0]='\0';
-						return t;
-			}
-		}//COMENTARIO			
-		//ESPECIAL 		
-			j=simbolos(t,l_h);
-		if(NULL!= simbolos(t,l_h)){	
-			fread(&l_h,sizeof(l_h),1,arq);
-			(*coluna)++;
-			return j;
-		}
-		fread(&l_h,sizeof(l_h),1,arq);
-		(*coluna)++;		
-		if(!alfabeto(l_h) && !feof(arq) ){
-				t->code=CARACTER_INVALIDO;
-				t->identificador[0]='\0';
 				return t;
 			}
+		}
+		//RELACIONAL
+
+		//COMENTARIO
+		else if( l_h == '/' ){
+
+			leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
+						
+			 if( l_h == '/' ){
+
+				while ( l_h !='\n' && !feof(arq) ){
+
+					fread(&l_h,sizeof(l_h),1,arq);
+					(*coluna)++;					
+					strcpy(buffer,"\0");					
+				}
+						
+			}else if( l_h == '*' ){
+						
+						buffer[pos_buffer]=l_h;
+						pos_buffer++;
+
+					while (!feof(arq)){
+
+						leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
+
+						if( '\n' == l_h ){
+							(*linha)++;
+							(*coluna)=0;
+						}
+
+						if( l_h == '*' ){
+
+							leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
+								
+							if( l_h == '/' ){
+
+								fread(&l_h,sizeof(l_h),1,arq);
+								(*coluna)++;
+								
+								strcpy(buffer,"\0");
+								return scan(arq,linha,coluna);							
+							}else{
+								fseek(arq,-sizeof(char),1);
+								pos_buffer--;
+								(*coluna)--;
+							}						
+						}
+					}
+
+				t->code=ERRO_COMENTARIO;				
+				strcpy(t->identificador,buffer);
+				return t;
+			 }else{ 
+				t->code=DIV;
+				strcpy(t->identificador,buffer);				
+				return t;
+			 }
+			pos_buffer=0;
+		}
+		//COMENTARIO	
+
+		//ESPECIAL 				
+		else if(')' == l_h ||'(' == l_h ||'{' == l_h ||'}' == l_h ||',' == l_h ||';' == l_h ||'+' == l_h ||'-' == l_h || '*' == l_h){	
+			
+			t=simbolos(t,l_h);
+			
+			fread(&l_h,sizeof(l_h),1,arq);
+			(*coluna)++;			
+			return t;
+
+		}else if( l_h == ' ' ||  l_h == '\t' ||  l_h == '\n' ){
+
+			if( l_h == ' ')		
+				(*coluna)++;		
+			else if( l_h == '\t')		
+				(*coluna)+=4;		
+			else if( l_h == '\n'){			
+				(*linha)++;		
+				(*coluna)=0;
+			}
+			fread(&l_h,sizeof(l_h),1,arq);
+				
+		}		
+		else{
+			t->code=CARACTER_INVALIDO;
+			t->identificador[0]=l_h;		
+
+			fread(&l_h,sizeof(l_h),1,arq);	//REMOVER ESTA LINHA
+			
+			return t;
+		}
 		//ESPECIAL			
-}
+	}	
 	return NULL;
 }
 
-void leitura(FILE * arq, char * l_h, int * linha, int * coluna){
-		
-	fread(&l_h,sizeof(l_h),1,arq);
+
+int verificar_id( char l_h , FILE * arq ){
+	
+	if( feof(arq) )
+		return 0;
+	else if( l_h == '_' )
+		return 1;
+	else if( isalnum(l_h) )
+		return 1;
+
+	return 0;
+}
+
+int verificar_numero( char l_h , FILE * arq ){
+
+	if( feof(arq) )
+		return 0;
+	else if( isdigit(l_h) )
+		return 1;
+	
+	return 0;
+}
+
+
+void leitura(FILE * arq,char * l_h, int * linha, int * coluna, char buffer[], int * pos_buffer){
+
+	
+	buffer[*pos_buffer]=(*l_h);
+	(*pos_buffer)++;
+
+	fread(&(*l_h),sizeof(char),1,arq);
 	(*coluna)++;
 
 
 }
 
-
-int alfabeto(char l_h){
-
-	char simbolos[15]={')','(','{','}',',',';','+','-','*','/','=','>','<','!','_'};
-	int i;
-
-	if(isalnum(l_h))
-		return 1;
-
-	for (i = 0; i < 15; i++){
-		if(l_h == simbolos[i])
-			return 1;
-	}
-	return 0;
-}
-
-
 Ttoken * simbolos(Ttoken * t,char l_h){
-	
+
 	int i;
 	char simbolos[10]={')','(','{','}',',',';','+','-','*'};
 
@@ -494,23 +452,6 @@ Ttoken * simbolos(Ttoken * t,char l_h){
 }
 
 
-
-int verificar_caracter(char l_h, int * linha, int * coluna, FILE * arq){
-
-	if( l_h == ' '){		
-		(*coluna)++;		
-		return 1;
-	}else if( l_h == '\t'){		
-		(*coluna)+=4;
-		return 1;
-	}else if( l_h == '\n'){			
-		(*coluna)++;
-		return 1;
-	}else if(feof(arq))
-		return 1;
-
-	return 0;
-}
 
 int Palavra_Reversada( char buffer[], int pos_buffer){
 
