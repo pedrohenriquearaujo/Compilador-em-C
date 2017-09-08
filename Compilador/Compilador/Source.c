@@ -317,12 +317,9 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 					strcpy(buffer,"\0");					
 				}
 						
-			}else if( l_h == '*' ){
-						
-						buffer[pos_buffer]=l_h;
-						pos_buffer++;
+			}else if( l_h == '*' ){	
 
-					while (!feof(arq)){
+					while (!feof(arq)){						
 
 						leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
 
@@ -341,9 +338,10 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 								(*coluna)++;
 								
 								strcpy(buffer,"\0");
-								return scan(arq,linha,coluna);							
-							}else{
-								fseek(arq,-sizeof(char),1);
+								return scan(arq,linha,coluna);	
+
+							}else if( l_h == '*' ){
+								fseek(arq,-sizeof(char),1);	
 								pos_buffer--;
 								(*coluna)--;
 							}						
