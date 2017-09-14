@@ -48,7 +48,7 @@ void Abrir_Arquivo(char nome[] , FILE ** arq);
 Ttoken * scan(FILE * arq, int * linha, int * coluna);
 int Palavra_Reversada( char buffer[], int pos_buffer);
 Ttoken * simbolos(Ttoken * t,char l_h);
-void msg (Ttoken * t, int linha, int coluna);
+void msg (Ttoken * t, int linha, int coluna, int * erro);
 void leitura(FILE * arq,char * l_h, int * linha, int * coluna, char buffer[], int * pos_buffer);
 int verificar_id( char l_h , FILE * arq);
 int verificar_numero( char l_h , FILE * arq );
@@ -57,46 +57,58 @@ int main( int argc, char* argv[] ){
 
 	FILE * arquivo;
 	Ttoken * t=NULL;
-	int linha=1, coluna=-1;	
+	int linha=1, coluna=-1, erro=0;	
 	
+	/*
+	if (argc < 2 || argc > 2) {
+		printf("Parametros invalidos!");
+		return 0;
+	}*/
 
-	Abrir_Arquivo("arquivo.txt",&arquivo);
+	Abrir_Arquivo(/*argv[1]*/"arquivo.txt",&arquivo);
 
-	while (!feof(arquivo)){
+	while (!feof(arquivo) && erro!=1){
 
 		t=scan(arquivo,&linha,&coluna);	
 
-		msg(t,linha,coluna);
+		msg(t,linha,coluna,&erro);
 
 	}
 	return 0;
 }
 
-void msg (Ttoken * t, int linha, int coluna){
 
-	if( t != NULL ){
 
-	if( t->code == 30 )
-		printf("ERRO na linha %i, coluna %i, ultimo token lido |%s|: FLOAT\n", linha, coluna, t->identificador);
-	else if( t->code == 31)
-		printf("ERRO na linha %i, coluna %i, ultimo token lido |%s|: CHAR\n", linha, coluna, t->identificador);
-	else if( t->code == 32)
-		printf("ERRO na linha %i, coluna %i, ultimo token lido |%s|: DEFERENTE '!='\n", linha, coluna, t->identificador);
-	else if( t->code == 33)
-		printf("ERRO na linha %i, coluna %i, ultimo token lido |%s|: COMENTARIO\n", linha, coluna, t->identificador);
-	else if( t->code == 37)
-		printf("ERRO na linha %i, coluna %i, ultimo token lido |%c|: CARACTER INVALIDO \n", linha, coluna, t->identificador[0]);
-	else{
-			printf("Code: %i  ", t->code);		
-			printf("Lex: {%s}	", t->identificador);		
-			printf("Linha: %i	", linha);
-			printf("Coluna: %i	", coluna);
-			printf("\n");
-	}
 
-	printf("\n");
-	}
+
+void msg (Ttoken * t, int linha, int coluna, int * erro){
+	
+		*erro=1;
+
+		if( t != NULL ){
+
+			if( t->code == 30 )
+				printf("ERRO na linha %i, coluna %i, ultimo token lido %s: MAL FORMACAO DE FLOAT\n", linha, coluna, t->identificador);				
+			else if( t->code == 31)
+					printf("ERRO na linha %i, coluna %i, ultimo token lido %s: MAL FORMACAO DE CHAR\n", linha, coluna, t->identificador);					
+			else if( t->code == 32)
+					printf("ERRO na linha %i, coluna %i, ultimo token lido %s: EXCLAMACAO NAO FOI PRECEDIDA DE IGUAL\n", linha, coluna, t->identificador);					
+			else if( t->code == 33)
+					printf("ERRO na linha %i, coluna %i, ultimo token lido %s: FINAL DE ARQUIVO DENTRO DO COMENTARIO MULTILINHA\n", linha, coluna, t->identificador);
+			else if( t->code == 37)
+					printf("ERRO na linha %i, coluna %i, ultimo token lido %c: CARACTER INVALIDO \n", linha, coluna, t->identificador[0]);		
+			else{	
+					*erro=0;
+					printf("Code: %i  ", t->code);		
+					printf("Lex: {%s}	", t->identificador);		
+					printf("Linha: %i	", linha);
+					printf("Coluna: %i	", coluna);
+					printf("\n");
+				}
+		printf("\n");
+		}
 }
+
 
 void Abrir_Arquivo(char nome[] , FILE ** arq){	
 
@@ -184,8 +196,10 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 				leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
 
 				if( l_h != 39 ){
-
-					leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);				
+					buffer[pos_buffer]=l_h;
+					t->code=ERRO_CHAR;
+					strcpy(t->identificador,buffer);
+					return t;			
 
 				}else{
 					buffer[pos_buffer]=l_h;
@@ -194,8 +208,8 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 					strcpy(t->identificador,buffer);
 					t->code=CHAR;	
 					
-					fread(&l_h,sizeof(l_h),1,arq); //REMOVER ESTA LINHA
-					(*coluna)++;					//REMOVER ESTA LINHA
+					fread(&l_h,sizeof(l_h),1,arq); 
+					(*coluna)++;					
 
 					return t;
 				}
@@ -216,12 +230,12 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 			if( buffer[0] == '>' ){
 
 				t->code=MAIOR;
-				t->identificador[0]=l_h;
+				t->identificador[0]=buffer[0];
 
 			}else{
 
 				t->code=MENOR;
-				t->identificador[0]=l_h;
+				t->identificador[0]=buffer[0];
 
 			}
 
@@ -314,14 +328,15 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 
 					fread(&l_h,sizeof(l_h),1,arq);
 					(*coluna)++;					
-					strcpy(buffer,"\0");					
+									
 				}
 						
 			}else if( l_h == '*' ){	
 
 					while (!feof(arq)){						
 
-						leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
+						fread(&(l_h),sizeof(char),1,arq);
+						(*coluna)++;
 
 						if( '\n' == l_h ){
 							(*linha)++;
@@ -330,26 +345,25 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 
 						if( l_h == '*' ){
 
-							leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
+							fread(&(l_h),sizeof(char),1,arq);
+							(*coluna)++;
 								
 							if( l_h == '/' ){
 
 								fread(&l_h,sizeof(l_h),1,arq);
-								(*coluna)++;
+								(*coluna)++;		
 								
-								strcpy(buffer,"\0");
 								return scan(arq,linha,coluna);	
 
-							}else if( l_h == '*' ){
+							}else if( l_h == '*' && !feof(arq)){
 								fseek(arq,-sizeof(char),1);	
 								pos_buffer--;
 								(*coluna)--;
 							}						
 						}
 					}
-
-				t->code=ERRO_COMENTARIO;				
-				strcpy(t->identificador,buffer);
+				strcpy(t->identificador,"FIM DE ARQUIVO\0");
+				t->code=ERRO_COMENTARIO;
 				return t;
 			 }else{ 
 				t->code=DIV;
@@ -384,10 +398,7 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 		}		
 		else{
 			t->code=CARACTER_INVALIDO;
-			t->identificador[0]=l_h;		
-
-			fread(&l_h,sizeof(l_h),1,arq);	//REMOVER ESTA LINHA
-			
+			t->identificador[0]=l_h;
 			return t;
 		}
 		//ESPECIAL			
