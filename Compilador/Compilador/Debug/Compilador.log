@@ -1,4 +1,4 @@
-﻿Build started 14/09/2017 09:49:27.
+﻿Build started 15/09/2017 09:33:21.
      1>Project "D:\OneDrive\Documentos\Compilador-em-C\Compilador\Compilador\Compilador.vcxproj" on node 2 (Build target(s)).
      1>Link:
          Compilador.vcxproj -> D:\OneDrive\Documentos\Compilador-em-C\Compilador\Debug\Compilador.exe
@@ -6,4 +6,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.02
+Time Elapsed 00:00:00.03

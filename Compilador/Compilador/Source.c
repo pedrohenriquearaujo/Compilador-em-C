@@ -35,7 +35,7 @@
 #define ERRO_EXCLAMACAO 32
 #define ERRO_COMENTARIO 33
 //CARACTER
-#define CARACTER_INVALIDO 37
+#define CARACTER_INVALIDO 34
 
 typedef struct token{
 
@@ -59,13 +59,13 @@ int main( int argc, char* argv[] ){
 	Ttoken * t=NULL;
 	int linha=1, coluna=-1, erro=0;	
 	
-	/*
+	
 	if (argc < 2 || argc > 2) {
-		printf("Parametros invalidos!");
+		printf("ERRO NOS PARAMETROS!");
 		return 0;
-	}*/
+	}
 
-	Abrir_Arquivo(/*argv[1]*/"arquivo.txt",&arquivo);
+	Abrir_Arquivo(argv[1],&arquivo);
 
 	while (!feof(arquivo) && erro!=1){
 
@@ -76,10 +76,6 @@ int main( int argc, char* argv[] ){
 	}
 	return 0;
 }
-
-
-
-
 
 void msg (Ttoken * t, int linha, int coluna, int * erro){
 	
@@ -95,34 +91,36 @@ void msg (Ttoken * t, int linha, int coluna, int * erro){
 					printf("ERRO na linha %i, coluna %i, ultimo token lido %s: EXCLAMACAO NAO FOI PRECEDIDA DE IGUAL\n", linha, coluna, t->identificador);					
 			else if( t->code == 33)
 					printf("ERRO na linha %i, coluna %i, ultimo token lido %s: FINAL DE ARQUIVO DENTRO DO COMENTARIO MULTILINHA\n", linha, coluna, t->identificador);
-			else if( t->code == 37)
+			else if( t->code == 34)
 					printf("ERRO na linha %i, coluna %i, ultimo token lido %c: CARACTER INVALIDO \n", linha, coluna, t->identificador[0]);		
 			else{	
 					*erro=0;
+					/*
 					printf("Code: %i  ", t->code);		
 					printf("Lex: {%s}	", t->identificador);		
 					printf("Linha: %i	", linha);
 					printf("Coluna: %i	", coluna);
 					printf("\n");
+					*/
 				}
-		printf("\n");
+		/*printf("\n");*/
 		}
 }
-
 
 void Abrir_Arquivo(char nome[] , FILE ** arq){	
 
 	*arq=fopen(nome,"r");
 
 	if(*arq!=NULL){
-		printf("Arquivo Aberto Com Sucesso!");	
+		/*printf("Arquivo Aberto Com Sucesso!");*/
 	}else{
 		printf("Erro de Abertura do Arquivo!");
 	}
 
-	printf("\n\n");
+	/*printf("\n\n");*/
 
 }
+
 Ttoken * scan(FILE * arq, int * linha, int * coluna){
 
 
@@ -297,6 +295,7 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 
 			if( l_h != '=' ){
 
+				if(!feof(arq))
 				buffer[pos_buffer]=l_h;
 				
 				t->code=ERRO_EXCLAMACAO;
@@ -322,7 +321,7 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 
 			leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
 						
-			 if( l_h == '/' ){
+			 if( l_h == '/' && !feof(arq)){
 
 				while ( l_h !='\n' && !feof(arq) ){
 
@@ -347,7 +346,7 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 
 							fread(&(l_h),sizeof(char),1,arq);
 							(*coluna)++;
-								
+															
 							if( l_h == '/' ){
 
 								fread(&l_h,sizeof(l_h),1,arq);
@@ -359,6 +358,13 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 								fseek(arq,-sizeof(char),1);	
 								pos_buffer--;
 								(*coluna)--;
+							}
+							
+							if( l_h == '\n'){
+								
+							(*linha)++;
+							(*coluna)=0;
+								
 							}						
 						}
 					}
@@ -406,7 +412,6 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 	return NULL;
 }
 
-
 int verificar_id( char l_h , FILE * arq ){
 	
 	if( feof(arq) )
@@ -428,7 +433,6 @@ int verificar_numero( char l_h , FILE * arq ){
 	
 	return 0;
 }
-
 
 void leitura(FILE * arq,char * l_h, int * linha, int * coluna, char buffer[], int * pos_buffer){
 
@@ -459,8 +463,6 @@ Ttoken * simbolos(Ttoken * t,char l_h){
 
 	return NULL;
 }
-
-
 
 int Palavra_Reversada( char buffer[], int pos_buffer){
 
