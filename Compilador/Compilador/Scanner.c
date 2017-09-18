@@ -81,252 +81,30 @@ int main( int argc, char* argv[] ){
 	Ttoken * t=NULL;
 	int linha=1, coluna=-1;	
 	
-	/*
+	
 	if (argc < 2 || argc > 2) {
 		printf("ERRO NOS PARAMETROS!");
 		return 0;
-	}*/
+	}
 
-	Abrir_Arquivo(/*argv[1]*/"arquivo.txt",&arquivo);
+	Abrir_Arquivo(argv[1],&arquivo);
 					
-	parser(arquivo,&linha,&coluna);
-	
+	while (!feof(arquivo)){
+
+		t=scan(arquivo,&linha,&coluna);			
+
+	}	
 	return 0;
-}
-
-
-void parser(FILE * arq, int * linha, int * coluna) {
-	
-	Ttoken * t;
-
-	programa(arq,linha,coluna);
-
-	t=scan(arq,linha,coluna);
-	
-		if( t->code == 35 )
-			printf("PROCESSO DE COMPILACAO TERMINADO\n");			
-		else if(feof(arq))
-			printf("ERRO na linha %i, coluna %i, ultimo token lido %s: COMANDOS FORA DO BLOCO\n", (*linha), (*coluna), t->identificador);
-}
-
-
-void programa(FILE * arq, int * linha, int * coluna){
-	
-	Ttoken * t;
-	t=scan(arq,linha,coluna);
-	
-		if( t->code == INT ){
-			t=scan(arq,linha,coluna);
-			if( t->code == MAIN ){
-				t=scan(arq,linha,coluna);
-				if( t->code == PARENTESES_ESQUERDO  ){
-					t=scan(arq,linha,coluna);
-					if( t->code == PARENTESES_DIREITO ){
-						t=scan(arq,linha,coluna); 
-						if( t->code == CHAVE_ESQUERDA ){
-							bloco(arq,linha,coluna);
-						}else{
-						printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Falta Do '{'\n", (*linha), (*coluna), t->identificador);
-						return;
-						}
-					}else{
-						printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Falta Do ')'\n", (*linha), (*coluna), t->identificador);
-						return;						
-					}
-				}else{
-					printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Falta Do '('\n", (*linha), (*coluna), t->identificador);
-					return;					
-				}
-			}else{
-				printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Falta Do 'main'\n", (*linha), (*coluna), t->identificador);
-				return;
-			}						
-		}else{
-			printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Falta Do 'int'\n", (*linha), (*coluna), t->identificador);
-			return;	
-		}	
-}
-
-void bloco(FILE * arq, int * linha, int * coluna){
-	
-	Ttoken * t=NULL;	
-
-	t=scan(arq,linha,coluna);
-	
-	while ( t->code != 35){
-
-		if( t->code == INT || t->code == FLOAT || t->code == CHAR )
-			declara_variavel(arq,linha,coluna);
-		else if( t->code == IF || t->code == ELSE || t->code == WHILE || t->code == DO || t->code == FOR)
-			comando(arq,linha,coluna);
-		else if( t->code == ID )
-			atribuicao(arq,linha,coluna);
-		
-		
-		
-		
-		else if( t->code == CHAVE_DIREITA )
-			return ;
-		
-
-
-
-		t=scan(arq,linha,coluna);
-	}		
-	printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Ausencia '}'\n", (*linha), (*coluna), t->identificador);
-	exit(0);
-
-}
-
-void declara_variavel(FILE * arq, int * linha, int * coluna){
-	
-	Ttoken * t=NULL;	
-
-	t=scan(arq,linha,coluna); 
-						
-				if( t->code == ID ){
-						t=scan(arq,linha,coluna);
-
-						if( t->code == VIRGULA ){
-								
-							while( t->code == VIRGULA ){
-								t=scan(arq,linha,coluna);
-									if( t->code == ID){
-										t=scan(arq,linha,coluna);
-									}else{
-										printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Ausencia do IDENTIFICADOR\n", (*linha), (*coluna), t->identificador);
-										exit(0);
-									}
-							}
-								if( t->code == PONTO_VIRGULA )
-									return;
-								else{									
-									printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Ausencia do PONTO E VIRGULA\n", (*linha), (*coluna), t->identificador);
-									exit(0);
-								}			
-						}else if( t->code == PONTO_VIRGULA ){
-							return;
-						}else{						
-							printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Ausencia do PONTO E VIRGULA\n", (*linha), (*coluna), t->identificador);
-							exit(0);
-						}
-					}else{
-					printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Ausencia do IDENTIFICADOR\n", (*linha), (*coluna), t->identificador);
-					exit(0);
-					}
-}
-
-void atribuicao(FILE * arq, int * linha, int * coluna){
-
-	Ttoken * t=NULL;	
-
-	t=scan(arq,linha,coluna); 
-
-	if( t->code == ATRIBUICAO ){
-		t=scan(arq,linha,coluna); 
-		if( t->code == ID ){
-			t=scan(arq,linha,coluna); 
-			if( t->code == PONTO_VIRGULA )
-				return;
-			else if( t->code == SOMA || t->code == SUB || t->code == DIV || t->code == MULT){
-
-				while (t->code == SOMA || t->code == SUB || t->code == DIV || t->code == MULT){
-						t=scan(arq,linha,coluna);
-
-						if( t->code == ID )
-							t=scan(arq,linha,coluna);				
-						else{
-								printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Ausencia ID\n", (*linha), (*coluna), t->identificador);
-								exit(0);
-							}
-				}
-
-				if( t->code == PONTO_VIRGULA )
-					return;
-				else{
-					printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Ausencia PONTO E VIRGULA\n", (*linha), (*coluna), t->identificador);
-					exit(0);
-				}
-			}else{
-				printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Ausencia PONTO E VIRGULA\n", (*linha), (*coluna), t->identificador);
-				exit(0);
-			}
-		}else{
-			printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Ausencia ID\n", (*linha), (*coluna), t->identificador);
-			exit(0);		
-		}
-	} else{
-			printf("ERRO na linha %i, coluna %i, ultimo token lido %s: Ausencia Do Igual\n", (*linha), (*coluna), t->identificador);
-			exit(0);
-	}
-	
-
-
-}
-
-
-void comando (FILE * arq, int * linha, int * coluna){
-	
-	
-	Ttoken * t=NULL;	
-
-	 
-	//comando basico
-	if( t->code == ID){
-		atribuicao(arq,linha,coluna);	
-	}else if( t->code == WHILE || t->code == DO ){
-		
-	
-	
-	}else if( t->code == IF){
-		
-	
-	}
-}
-
-void expr_arit (FILE * arq, int * linha, int * coluna){
-	
-	Ttoken * t=NULL;
-
-
-
-
-
-}
-
-
-void termo (FILE * arq, int * linha, int * coluna){
-
-	Ttoken * t=NULL;
-
-	
-	
-	if( t->code == MULT){
-	
-	
-	}else if( t->code == DIV ){
-	
-	
-	}
-
-
-
-
-
 }
 
 void Abrir_Arquivo(char nome[] , FILE ** arq){	
 
 	*arq=fopen(nome,"r");
 
-	if(*arq!=NULL){
-		printf("Arquivo Aberto Com Sucesso!");
-	}else{
-		printf("Erro de Abertura do Arquivo!");
+	if( *arq == NULL ){
+		printf("Erro de Abertura do Arquivo!\n");
+		exit(0);
 	}
-
-	printf("\n\n");
-
 }
 
 Ttoken * scan(FILE * arq, int * linha, int * coluna){
@@ -357,8 +135,7 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 		else if( isdigit(l_h) || l_h == '.' ){
 
 			while ( verificar_numero(l_h,arq) )
-				leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);
-			
+				leitura(arq,&l_h,linha,coluna,buffer,&pos_buffer);			
 
 			if( l_h == '.' ){
 
@@ -372,7 +149,6 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 							t->code=V_FLOAT;
 							strcpy(t->identificador,buffer);	
 							return t;
-
 				}else{
 
 					t->code=ERRO_FLOAT;
@@ -555,7 +331,7 @@ Ttoken * scan(FILE * arq, int * linha, int * coluna){
 															
 							if( l_h == '/' ){
 
-								fread(&l_h,sizeof(l_h),1,arq);
+								fread(&l_h,sizeof(char),1,arq);
 								(*coluna)++;		
 								
 								return scan(arq,linha,coluna);	
