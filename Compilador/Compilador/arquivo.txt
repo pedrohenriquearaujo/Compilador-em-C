@@ -1,6 +1,12 @@
 int main (){
 
- if(aaa >
+
+if(a>b)
+ a=a;
+else
+ a=a*;	
+
+
 
 
 

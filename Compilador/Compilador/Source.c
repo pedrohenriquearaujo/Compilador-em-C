@@ -69,17 +69,22 @@ int verificar_numero( char l_h , FILE * arq );
 void bloco(FILE * arq, int * linha, int * coluna);
 void programa(FILE * arq, int * linha, int * coluna);
 void parser(FILE * arq, int * linha, int * coluna);
+
+
 void declara_variavel(FILE * arq, int * linha, int * coluna);
 void atribuicao(FILE * arq, int * linha, int * coluna);
 void comando (Ttoken * t,FILE * arq, int * linha, int * coluna);
 void comando_basico (Ttoken * t,FILE * arq, int * linha, int * coluna);
 void comando_if(FILE * arq, int * linha, int * coluna);
 void iteracao(FILE * arq, int * linha, int * coluna);
-void expr_relacional(Ttoken * t, FILE * arq, int * linha, int * coluna);
-void expr_arit (Ttoken * t, FILE * arq, int * linha, int * coluna);
-void expr_arit2 (Ttoken * t, FILE * arq, int * linha, int * coluna);
-void termo (Ttoken * t, FILE * arq, int * linha, int * coluna);
-void fator (Ttoken * t, FILE * arq, int * linha, int * coluna);
+
+void expr_relacional(Ttoken ** t, FILE * arq, int * linha, int * coluna);
+void expr_arit (Ttoken ** t, FILE * arq, int * linha, int * coluna);
+void expr_arit2 (Ttoken ** t, FILE * arq, int * linha, int * coluna);
+void termo (Ttoken ** t, FILE * arq, int * linha, int * coluna);
+void termo2 (Ttoken ** t, FILE * arq, int * linha, int * coluna);
+void fator (Ttoken ** t, FILE * arq, int * linha, int * coluna);
+int verificar_operador(int code);
 
 
 int main( int argc, char* argv[] ){
@@ -256,7 +261,7 @@ void atribuicao(FILE * arq, int * linha, int * coluna){
 	if( t->code == ATRIBUICAO ){
 
 		t=scan(arq,linha,coluna); 
-		expr_arit(t,arq,linha,coluna);		
+			expr_arit(&t,arq,linha,coluna);		
 			
 		if( t->code == PONTO_VIRGULA )
 				return;	
@@ -275,7 +280,7 @@ void comando (Ttoken * t,FILE * arq, int * linha, int * coluna){
 	
 		 
 	
-	if( t->code == ID || t->code == PARENTESES_ESQUERDO){
+	if( t->code == ID || t->code == CHAVE_ESQUERDA){
 		comando_basico(t,arq,linha,coluna);	
 	}else if( t->code == WHILE || t->code == DO ){
 		iteracao(arq,linha,coluna);	
@@ -288,7 +293,7 @@ void comando_basico (Ttoken * t,FILE * arq, int * linha, int * coluna){
 	
 	if( t->code == ID ){
 		atribuicao(arq,linha,coluna);	
-	}else if( t->code == PARENTESES_ESQUERDO){
+	}else if( t->code == CHAVE_ESQUERDA){
 		bloco(arq,linha,coluna);	
 	}
 }
@@ -301,12 +306,11 @@ void comando_if(FILE * arq, int * linha, int * coluna){
 
 			if( t->code == PARENTESES_ESQUERDO  ){
 				t=scan(arq,linha,coluna);
-					expr_relacional(t,arq,linha,coluna);
-					t=scan(arq,linha,coluna);
+					expr_relacional(&t,arq,linha,coluna);
+					
 					if( t->code == PARENTESES_DIREITO){
 						t=scan(arq,linha,coluna);
-							comando(t,arq,linha,coluna);
-								t=scan(arq,linha,coluna);
+							comando(t,arq,linha,coluna);								
 								if( t->code == ELSE){
 									t=scan(arq,linha,coluna);
 										comando(t,arq,linha,coluna);
@@ -332,7 +336,7 @@ void iteracao(FILE * arq, int * linha, int * coluna){
 			comando(t,arq,linha,coluna);
 			if( t->code == WHILE){
 				t=scan(arq,linha,coluna);	
-				expr_relacional(t,arq,linha,coluna);
+				expr_relacional(&t,arq,linha,coluna);
 				if( t->code == PONTO_VIRGULA){					
 					return;
 				}else{
@@ -345,7 +349,7 @@ void iteracao(FILE * arq, int * linha, int * coluna){
 				}
 		}else if( t->code == WHILE ){
 			t=scan(arq,linha,coluna);		
-				expr_relacional(t,arq,linha,coluna);
+				expr_relacional(&t,arq,linha,coluna);
 					t=scan(arq,linha,coluna);
 						comando(t,arq,linha,coluna);		
 		}else{
@@ -355,73 +359,104 @@ void iteracao(FILE * arq, int * linha, int * coluna){
 
 }
 
-void expr_relacional(Ttoken * t, FILE * arq, int * linha, int * coluna){
+void expr_relacional(Ttoken ** t, FILE * arq, int * linha, int * coluna){
 	
-	if( t->code == ID){
-		expr_arit(t,arq,linha,coluna);
-		t=scan(arq,linha,coluna);
-		if( t->code == MAIOR || t->code == MENOR || t->code == MAIOR_IGUAL || t->code == MENOR_IGUAL || t->code == DIF || t->code == IGUALDADE){
-			expr_arit(t,arq,linha,coluna);		
+	if( (*t)->code == ID){
+		expr_arit(t,arq,linha,coluna);		
+		if( (*t)->code == MAIOR || (*t)->code == MENOR || (*t)->code == MAIOR_IGUAL || (*t)->code == MENOR_IGUAL || (*t)->code == DIF || (*t)->code == IGUALDADE){
+			(*t)=scan(arq,linha,coluna);
+				expr_arit(t,arq,linha,coluna);		
 		}else{
-			printf("ERRO na linha %i, coluna %i, ultimo token lido %s: ESPERAVA UM OPERADOR RELACIONAL\n", (*linha), (*coluna), t->identificador);
+			printf("ERRO na linha %i, coluna %i, ultimo token lido %s: ESPERAVA UM OPERADOR RELACIONAL\n", (*linha), (*coluna), (*t)->identificador);
 			exit(0);
 		} 
 	}else{
-		printf("ERRO na linha %i, coluna %i, ultimo token lido %s: ESPERAVA UM IDENTIFICADOR\n", (*linha), (*coluna), t->identificador);
+		printf("ERRO na linha %i, coluna %i, ultimo token lido %s: ESPERAVA UM IDENTIFICADOR\n", (*linha), (*coluna), (*t)->identificador);
 		exit(0);
 	}
 }
-
-void expr_arit (Ttoken * t,FILE * arq, int * linha, int * coluna){
+//aqui
+void expr_arit (Ttoken ** t,FILE * arq, int * linha, int * coluna){
 	
 	termo(t,arq,linha,coluna);
 	expr_arit2(t,arq,linha,coluna);
+		
 }
 
-void expr_arit2 (Ttoken * t, FILE * arq, int * linha, int * coluna){
+void expr_arit2 (Ttoken ** t, FILE * arq, int * linha, int * coluna){
 	
-	if( t->code == SOMA){
-		t=scan(arq,linha,coluna);
+		if( (*t)->code == SOMA){
+
+			(*t)=scan(arq,linha,coluna);
 		
-		termo(t,arq,linha,coluna);
-		expr_arit2(t,arq,linha,coluna);
-	}else if( t->code == SUB){
-		t=scan(arq,linha,coluna);
+			expr_arit(t,arq,linha,coluna);
 		
-		termo(t,arq,linha,coluna);
-		expr_arit2(t,arq,linha,coluna);	
-	}
+		}else if( (*t)->code == SUB){
+
+			(*t)=scan(arq,linha,coluna);
+
+			expr_arit(t,arq,linha,coluna);	
+		}	
 }
 
-void termo (Ttoken * t, FILE * arq, int * linha, int * coluna){
+void termo (Ttoken ** t, FILE * arq, int * linha, int * coluna){
 		
 	fator(t,arq,linha,coluna);
-		
-	if( t->code == MULT){
-
-		t=scan(arq,linha,coluna);
-		return;	
-	}else if( t->code == DIV ){
-	
-		t=scan(arq,linha,coluna);
-		return;
-	}else if( t->code == PARENTESES_DIREITO ){
-
-		t=scan(arq,linha,coluna);
-		return;	
-	}	
+	termo2(t,arq,linha,coluna);
 }
 
-void fator(Ttoken * t, FILE * arq, int * linha, int * coluna ){
+void termo2 (Ttoken ** t, FILE * arq, int * linha, int * coluna){
+	
+		if((*t)->code == MULT){
 
-	if( t->code == PARENTESES_DIREITO ){	
-		t=scan(arq,linha,coluna);
-		expr_arit(t,arq,linha,coluna);	
-	}else if( t->code == ID || t->code == V_INT || t->code == V_FLOAT || t->code == V_CHAR){
-		t=scan(arq,linha,coluna);		
+		(*t)=scan(arq,linha,coluna);	
+
+			expr_arit(t,arq,linha,coluna);
+		
+		return;	
+
+		}else if( (*t)->code == DIV ){
+	
+		(*t)=scan(arq,linha,coluna);
+
+			expr_arit(t,arq,linha,coluna);
+		
+		return;
+		}
+}
+
+
+void fator(Ttoken ** t, FILE * arq, int * linha, int * coluna ){
+
+	if( (*t)->code ==PARENTESES_ESQUERDO ){	
+		(*t)=scan(arq,linha,coluna);
+		if( !(verificar_operador((*t)->code)) ){
+			expr_arit(t,arq,linha,coluna);				
+				if( (*t)->code != PARENTESES_DIREITO ){
+					printf("ERRO na linha %i, coluna %i, ultimo token lido %s: ESPERAVA DE PARENTESE\n", (*linha), (*coluna), (*t)->identificador);
+					exit(0);				
+				}else{
+					(*t)=scan(arq,linha,coluna);
+				}
+		}else{
+			printf("ERRO na linha %i, coluna %i, ultimo token lido %s: ISOLAMENTO DE OPERADOR COM PARENTESE\n", (*linha), (*coluna), (*t)->identificador);
+			exit(0);
+
+		}
+	}else if( (*t)->code == ID || (*t)->code == V_INT || (*t)->code == V_FLOAT || (*t)->code == V_CHAR){
+		(*t)=scan(arq,linha,coluna);		
 	}
 }
 
+
+int verificar_operador(int code){
+
+	if( (code >= 18 && code <= 22) || code == 14)
+		return 1;
+	return 0;
+}
+
+//aqui
 void Abrir_Arquivo(char nome[] , FILE ** arq){	
 
 	*arq=fopen(nome,"r");
