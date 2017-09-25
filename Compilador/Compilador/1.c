@@ -1,5 +1,5 @@
-int main() {
-	// int x,y,z;
+int main (){						
+										// int x,y,z;
 	float h;int c;
 float w,k,a;
 
@@ -84,47 +84,5 @@ k = x + y;
 			}
 		}
 
-		/*
-		teste &% 
-		***/
-
-
-		do{
-
-			w = w + 1;
-			do//{
-			{	
-				while (x>(w*8) - 30 * 60 * 80 / 90 - (230 * a)) {
-					float y,a;
-					char b, ___c, ___________d, _e, _f, _aaaaaaaaaaaaaaaaaaaaaaaaaaaaa;
-					w = w +1;
-					//y = x;
-				}
-				w = w + 1;
-
-			}while  (3 == ((30 * (60 * (20 /7 - 8) * (a + b - (30 / (60 * (20 /7 - 8 -(20 /7 - 8)) * (a + b) + (3 * b))/ 30)) + (88)) + (3 * b))/ (30)) + (88));
-		}while  (y<10); 
-
-		/*
-		y = x;
-
-		while (x>w*8) {*/
-		{{while(m <= 50)
-		{
-			float y,a;
-			w = w +1;
-			y = x;
-		}}}
-
-		a = 0;
-
-		if (w != x) 
-		{
-
-			/** @#$%&*()@#$%&*()#$%&*()#$%&*(
-
-			*/
-			p = 10;
-		}
 
 }
