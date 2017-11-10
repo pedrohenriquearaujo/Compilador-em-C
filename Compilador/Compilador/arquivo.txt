@@ -4,12 +4,8 @@ int main (){
 	float x;
 	char j;
 
-	if(x>j){
-	int j;
-	j=a;
-	
-	}
-	
+	if(10.1>10)
+	x=10.1/1;
 	
 
 

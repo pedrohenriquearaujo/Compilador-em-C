@@ -294,9 +294,9 @@ void atribuicao(Ttoken ** t, FILE * arq, int * linha, int * coluna){
 
 					compatibilidade(&(*t),tipo_direito,tipo_esquerdo,linha,coluna);			
 
-				if ( tipo_direito == V_FLOAT && tipo_esquerdo == tipo_esquerdo == V_INT) {
+				if ( tipo_direito == V_FLOAT && tipo_esquerdo == tipo_esquerdo == V_INT) 
 					tipo_esquerdo = V_FLOAT;
-				}
+				
 				
 					(*t)=scan(arq,linha,coluna);
 					//return;	
@@ -443,11 +443,21 @@ void iteracao(Ttoken ** t, FILE * arq, int * linha, int * coluna){
 
 void expr_relacional(Ttoken ** t, FILE * arq, int * linha, int * coluna){	
 
-		expr_arit(t,arq,linha,coluna);
+	int tipo_direito, tipo_esquerdo;
+
+		tipo_direito=expr_arit(t,arq,linha,coluna);
 
 		if( (*t)->code == MAIOR || (*t)->code == MENOR || (*t)->code == MAIOR_IGUAL || (*t)->code == MENOR_IGUAL || (*t)->code == DIF || (*t)->code == IGUALDADE){
 			(*t)=scan(arq,linha,coluna);
-				expr_arit(t,arq,linha,coluna);		
+				tipo_esquerdo=expr_arit(t,arq,linha,coluna);			
+
+		if ( tipo_direito == V_INT && tipo_esquerdo == V_FLOAT) 
+			tipo_direito = V_FLOAT;
+		else if ( tipo_direito == V_FLOAT && tipo_esquerdo == V_INT) 
+			tipo_direito = V_FLOAT;		
+
+		compatibilidade(&(*t),tipo_direito,tipo_esquerdo,linha,coluna);			
+
 		}else{
 			printf("ERRO na linha %i, coluna %i, ultimo token lido %s:ERRO EM EXPRESSAO RELACIONAL, FALTA DE UM OPERADOR RELACIONAL\n", (*linha), (*coluna), (*t)->identificador);
 			exit(0);
@@ -541,15 +551,10 @@ int termo (Ttoken ** t, FILE * arq, int * linha, int * coluna){
 			 compatibilidade(&(*t),tipo_direito,tipo_esquerdo,linha,coluna);
 			 			
 
-			if (( tipo_direito == V_INT && tipo_esquerdo == V_INT && divisao == 1) || ( tipo_direito == V_INT && tipo_esquerdo == V_FLOAT) ) {
+			if (( tipo_direito == V_INT && tipo_esquerdo == V_INT && divisao == 1) || ( tipo_direito == V_INT && tipo_esquerdo == V_FLOAT) ) 
 				tipo_direito = V_FLOAT;
-			}
-					
-
-		}
-	
+		}	
 	}
-
 	return tipo_direito;
 }
 
@@ -572,11 +577,8 @@ int fator(Ttoken ** t, FILE * arq, int * linha, int * coluna ){
 			}
 		
 	
-	}else if( (*t)->code == V_INT || (*t)->code == V_FLOAT || (*t)->code == V_CHAR ){	
-
-
-
-
+	}else if( (*t)->code == V_INT || (*t)->code == V_FLOAT || (*t)->code == V_CHAR ){
+		tipo=(*t)->code;
 		(*t)=scan(arq,linha,coluna);	
 		return tipo;
 	}else if( (*t)->code == ID  ){
