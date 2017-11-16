@@ -1,13 +1,10 @@
 int main (){
 	
-	int a,b,c;
+	int a;
 	float x;
-	char j;
+	char j;	
 
-	if(10.1>10)
-	x=10.1/1;
-	
-
+	a=a/a;
 
 
 }

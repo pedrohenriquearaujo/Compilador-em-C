@@ -103,8 +103,7 @@ int expr_arit2 (Ttoken ** t, FILE * arq, int * linha, int * coluna);
 int termo (Ttoken ** t, FILE * arq, int * linha, int * coluna);
 int fator (Ttoken ** t, FILE * arq, int * linha, int * coluna);
 
-int escopo=0;
-int divisao=0;
+int escopo=0, divisao=0;
 
 
 int main( int argc, char* argv[] ){
@@ -126,7 +125,6 @@ int main( int argc, char* argv[] ){
 	return 0;
 }
 
-
 void parser(FILE * arq, int * linha, int * coluna) {
 	
 	Ttoken * t;
@@ -134,14 +132,12 @@ void parser(FILE * arq, int * linha, int * coluna) {
 	programa(arq,linha,coluna);
 
 	t=scan(arq,linha,coluna);
-
 	
 		if( t->code == EOF )
 			printf("COMPILADO DO SUCESSO\n");			
 		else if(!feof(arq))
 			printf("ERRO na linha %i, coluna %i, ultimo token lido %s:ERRO DE PROGRAMA, COMANDOS FORA DO BLOCO\n", (*linha), (*coluna), t->identificador);
 }
-
 
 void programa(FILE * arq, int * linha, int * coluna){
 	
@@ -205,7 +201,7 @@ void declara_variavel(Ttoken ** t, FILE * arq, int * linha, int * coluna){
 												(*t)=scan(arq,linha,coluna);											
 											
 											}else{
-												printf("ERRO na linha %i, coluna %i, ultimo token lido %s: ERRO DE DECLARACAO: IDENTIFICADOR EM USO\n", *linha, *coluna);
+												printf("ERRO na linha %i, coluna %i, ultimo token lido %s: ERRO DE DECLARACAO: IDENTIFICADOR EM USO\n", *linha, *coluna, (*t)->identificador);
 												exit(0);
 											}	
 										}else{
@@ -229,7 +225,7 @@ void declara_variavel(Ttoken ** t, FILE * arq, int * linha, int * coluna){
 								exit(0);							
 							}
 						}else{
-							printf("ERRO na linha %i, coluna %i, ultimo token lido %s: ERRO DE DECLARACAO: IDENTIFICADOR EM USO\n", *linha, *coluna);
+							printf("ERRO na linha %i, coluna %i, ultimo token lido %s: ERRO DE DECLARACAO: IDENTIFICADOR EM USO\n", *linha, *coluna, (*t)->identificador);
 							exit(0);
 						}
 				}else{
@@ -254,9 +250,7 @@ void bloco(Ttoken ** t,FILE * arq, int * linha, int * coluna){
 			comando(t,arq,linha,coluna);
 		}
 
-		if( (*t)->code != CHAVE_DIREITA){
-			
-	
+		if( (*t)->code != CHAVE_DIREITA){				
 
 			if( (*t)->code == INT || (*t)->code == FLOAT || (*t)->code == CHAR){
 				printf("ERRO na linha %i, coluna %i, ultimo token lido %s: ERRO NO BLOCO, DECLARACOES DEVEM SER AGRUPADAS NO INICIO DO BLOCO\n", (*linha), (*coluna), (*t)->identificador);
@@ -307,14 +301,11 @@ void atribuicao(Ttoken ** t, FILE * arq, int * linha, int * coluna){
 			}else{
 					printf("ERRO na linha %i, coluna %i, ultimo token lido %s:ERRO NA ATRIBUICAO, FALTA DO '='\n", (*linha), (*coluna), (*t)->identificador);
 					exit(0);
-			 }
-	
+			 }	
 	}else{
-		printf("ERRO na linha %i, coluna %i, ultimo token lido %s:ERRO NA ATRIBUICAO, VARIAVEL NAO DECLARADA\n", *linha, *coluna);
+		printf("ERRO na linha %i, coluna %i, ultimo token lido %s:ERRO NA ATRIBUICAO, VARIAVEL NAO DECLARADA\n", *linha, *coluna, (*t)->identificador);
 		exit(0);
-	}
-
-	
+	}	
 }
 
 int buscar_variavel(char idenficador[]) {
@@ -331,8 +322,7 @@ int buscar_variavel(char idenficador[]) {
 				else if ( aux->code == V_FLOAT) 					
 					return V_FLOAT;				
 				else if ( aux->code == V_CHAR) 				
-					return V_CHAR;
-				
+					return V_CHAR;				
 			}
 			else
 				aux = aux->prox;
@@ -340,7 +330,6 @@ int buscar_variavel(char idenficador[]) {
 		return 0;
 	}
 }
-
 
 void comando (Ttoken ** t,FILE * arq, int * linha, int * coluna){			 
 	
@@ -461,8 +450,7 @@ void expr_relacional(Ttoken ** t, FILE * arq, int * linha, int * coluna){
 		}else{
 			printf("ERRO na linha %i, coluna %i, ultimo token lido %s:ERRO EM EXPRESSAO RELACIONAL, FALTA DE UM OPERADOR RELACIONAL\n", (*linha), (*coluna), (*t)->identificador);
 			exit(0);
-		} 
-	
+		} 	
 }
 
 int expr_arit (Ttoken ** t,FILE * arq, int * linha, int * coluna){
@@ -476,32 +464,26 @@ int expr_arit (Ttoken ** t,FILE * arq, int * linha, int * coluna){
 	
 	if ( tipo_direito == V_INT && tipo_esquerdo == V_FLOAT) 
 		tipo_direito = V_FLOAT;
-		
-		
 
 	return tipo_direito;		
 }
-
 
 void compatibilidade(Ttoken ** t, int tipo_direito, int tipo_esquerdo, int * linha, int * coluna){
 
 		if ( tipo_esquerdo == V_INT || tipo_esquerdo == V_FLOAT ||  tipo_esquerdo == V_CHAR ) {
 
 		 if ( tipo_direito == V_CHAR && tipo_esquerdo != V_CHAR) {
-			 printf("ERRO na linha %i, coluna %i, ultimo token lido |%s| :ERRO NA EXPRESSAO, CHAR != CHAR\n",*linha, *coluna,(*t)->identificador);
+			 printf("ERRO na linha %i, coluna %i, ultimo token lido |%s| CHAR OPERA APENAS COM CHAR \n",*linha, *coluna,(*t)->identificador);
 			exit(0);			
 		}else if ( tipo_direito == V_FLOAT && tipo_esquerdo == V_CHAR) {
-			printf("ERRO na linha %i, coluna %i, ultimo token lido |%s| :ERRO NA EXPRESSAO, CHAR = FLOAT\n",*linha, *coluna,(*t)->identificador);			
+			printf("ERRO na linha %i, coluna %i, ultimo token lido |%s| CHAR OPERANDO COM FLOAT \n",*linha, *coluna,(*t)->identificador);			
 			exit(0);			
 		}else if ( tipo_direito == V_INT && tipo_esquerdo != V_INT) {
-			printf("ERRO na linha %i, coluna %i, ultimo token lido |%s| :ERRO NA EXPRESSAO, INT != INT\n", *linha, *coluna,(*t)->identificador);			
+			printf("ERRO na linha %i, coluna %i, ultimo token lido |%s| INT OPERA APENAS COM INT \n", *linha, *coluna,(*t)->identificador);			
 			exit(0);					
 		}
-	}
-
-		
+	}		
 }
-
 
 int expr_arit2 (Ttoken ** t, FILE * arq, int * linha, int * coluna){
 	
@@ -536,12 +518,11 @@ int termo (Ttoken ** t, FILE * arq, int * linha, int * coluna){
 
 	while ((*t)->code == MULT || (*t)->code == DIV ) {
 
-		if ((*t)->code == DIV) {//testa a divisão, para o caso de uma divisão de int com int
+		if ((*t)->code == DIV) {
 			divisao = 1;
 		}
 		else
 			divisao = 0;
-
 
 		(*t)=scan(arq,linha,coluna);
 		tipo_esquerdo = fator(t,arq,linha,coluna);
@@ -552,7 +533,7 @@ int termo (Ttoken ** t, FILE * arq, int * linha, int * coluna){
 			 			
 
 			if (( tipo_direito == V_INT && tipo_esquerdo == V_INT && divisao == 1) || ( tipo_direito == V_INT && tipo_esquerdo == V_FLOAT) ) 
-				tipo_direito = V_FLOAT;
+				tipo_direito = V_FLOAT; 
 		}	
 	}
 	return tipo_direito;
@@ -929,15 +910,12 @@ int verificar_numero( char l_h , FILE * arq ){
 }
 
 void leitura(FILE * arq,char * l_h, int * linha, int * coluna, char buffer[], int * pos_buffer){
-
 	
 	buffer[*pos_buffer]=(*l_h);
 	(*pos_buffer)++;
 
 	fread(&(*l_h),sizeof(char),1,arq);
 	(*coluna)++;
-
-
 }
 
 Ttoken * simbolos(Ttoken * t,char l_h){
@@ -1013,20 +991,6 @@ Tlista * criar_no_tabela( Tlista ** novo, char identicidador[], int tipo ){
 	return (*novo);
 }
 
-void listar( Tlista ** tabela ) {
-	Tlista *aux = *tabela;
-	
-	if (aux == NULL) {
-		printf("\nTabela vazia");
-	}
-	else {
-		while (aux != NULL) {
-			printf("Lexema: %s \tID: %i \tEscopo:%i\n", aux->identificador, aux->code, aux->escopo);
-			aux = aux->prox;
-		}
-	}	
-}
-
 int verificar_tipo(Ttoken * t, int *linha, int *coluna) {
 
 	if ( t->code == INT )
@@ -1036,10 +1000,9 @@ int verificar_tipo(Ttoken * t, int *linha, int *coluna) {
 	else if ( t->code == CHAR) 		
 		return V_CHAR;	
 	else {
-		printf("\nERRO SINTATICO. [LINHA: %i,COLUNA: %i]. Declare variáveis do tipo int, float ou char.\n", *linha, *coluna);
+		printf("ERRO na linha %i, coluna %i, ultimo token lido %c: TIPO INVALIDO \n", *linha, *coluna, t->identificador);		
 		exit(0);
 	}
-
 }
 
 int consultar(char identificador[]){
