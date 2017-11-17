@@ -4,7 +4,13 @@ int main (){
 	float x;
 	char j;	
 
-	a=a/a;
+if(a>x){
+int b;
+b=a/j;
+
+
+
+}
 
 
 }

@@ -78,13 +78,11 @@ int verificar_numero( char l_h , FILE * arq );
 
 int consultar(char identificador[]);
 int verificar_tipo(Ttoken * t, int *linha, int *coluna);
-void listar( Tlista ** tabela );
 Tlista * criar_no_tabela( Tlista ** novo, char identicidador[], int tipo );
 void inserir(char identicidador[], int tipo);
 void remover(Tlista ** tabela);
 void compatibilidade(Ttoken ** t, int tipo_direito, int tipo_esquerdo, int * linha, int * coluna);
 int buscar_variavel(char idenficador[]);
-
 
 void programa(FILE * arq, int * linha, int * coluna);
 void parser(FILE * arq, int * linha, int * coluna);
@@ -104,7 +102,6 @@ int termo (Ttoken ** t, FILE * arq, int * linha, int * coluna);
 int fator (Ttoken ** t, FILE * arq, int * linha, int * coluna);
 
 int escopo=0, divisao=0;
-
 
 int main( int argc, char* argv[] ){
 
@@ -179,7 +176,7 @@ void declara_variavel(Ttoken ** t, FILE * arq, int * linha, int * coluna){
 						
 				if( (*t)->code == ID ){					
 
-						if(consultar((*t)->identificador)){
+						if(consultar((*t)->identificador) == 1){
 
 							inserir((*t)->identificador,valor);
 
@@ -194,7 +191,7 @@ void declara_variavel(Ttoken ** t, FILE * arq, int * linha, int * coluna){
 
 										if( (*t)->code == ID){
 
-											if(consultar((*t)->identificador)){
+											if(consultar((*t)->identificador) == 1){
 
 												inserir((*t)->identificador,valor);
 
@@ -274,7 +271,7 @@ void atribuicao(Ttoken ** t, FILE * arq, int * linha, int * coluna){
 
 	int tipo_direito = buscar_variavel((*t)->identificador), tipo_esquerdo;
 
-	if(tipo_direito){
+	if(tipo_direito != 0){
 	
 		(*t)=scan(arq,linha,coluna); 
 
@@ -566,7 +563,7 @@ int fator(Ttoken ** t, FILE * arq, int * linha, int * coluna ){
 		
 		tipo = buscar_variavel((*t)->identificador);
 
-			if (tipo) {
+			if (tipo != 0) {
 				(*t)=scan(arq,linha,coluna);
 					return tipo;																					
 			}else{
@@ -950,16 +947,19 @@ int Palavra_Reversada( char buffer[], int pos_buffer){
 
 void remover(Tlista ** tabela){
 
-	Tlista *aux;
+	Tlista *aux,aux2;
 
 	if (*tabela == NULL)
 		return;
 	else {
 		aux = *tabela;
 		while (aux->escopo == escopo) {
+			
 			*tabela = aux->prox;
 			free(aux);
-			if (tabela == NULL)
+			aux=*tabela;
+
+			if (*tabela == NULL)
 				return;
 		}
 	}
