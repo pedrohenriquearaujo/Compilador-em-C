@@ -1,16 +1,13 @@
 int main (){
-	
-	int a;
-	float x;
-	char j;	
 
-if(a>x){
-int b;
-b=a/j;
+int a;
+float b,c;
 
-
-
-}
+ while(a>b*c){
+ 
+ b=a;
+ 
+ }
 
 
 }
